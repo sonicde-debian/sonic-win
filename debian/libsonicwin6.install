@@ -1,2 +1,2 @@
-usr/lib/*/libkwin.so.6
-usr/lib/*/libkwin.so.6.*
+usr/lib/*/libkwin-x11.so.6
+usr/lib/*/libkwin-x11.so.6.*

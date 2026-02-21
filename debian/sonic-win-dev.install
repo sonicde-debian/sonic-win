@@ -1,6 +1,5 @@
-usr/include/kwin/
-usr/lib/*/cmake/KWinDBusInterface/
-usr/lib/*/cmake/KWin/
-usr/lib/*/libkwin.so
-usr/share/dbus-1/interfaces/org.kde.KWin.*
-usr/share/dbus-1/interfaces/org.kde.kwin.*
+usr/include/kwin-x11/
+usr/lib/*/cmake/KWinX11/
+usr/lib/*/cmake/KWinX11DBusInterface/
+usr/lib/*/libkwin-x11.so
+usr/share/dbus-1/interfaces/
