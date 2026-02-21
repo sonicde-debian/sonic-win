@@ -13,6 +13,7 @@
 #include "input_event.h"
 #include "main.h"
 #include "utils/keys.h"
+#include "wayland_server.h"
 #include "workspace.h"
 
 #include <QGuiApplication>

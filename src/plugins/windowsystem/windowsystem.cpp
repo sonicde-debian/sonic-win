@@ -5,12 +5,17 @@
 */
 #include "windowsystem.h"
 
+#include <KWaylandExtras>
 #include <KWindowSystem>
 
 #include <QGuiApplication>
 #include <QWindow>
+#include <wayland/display.h>
+#include <wayland/seat.h>
+#include <wayland_server.h>
 #include <window.h>
 #include <workspace.h>
+#include <xdgactivationv1.h>
 
 Q_DECLARE_METATYPE(NET::WindowType)
 
@@ -41,10 +46,12 @@ bool WindowSystem::showingDesktop()
 
 void WindowSystem::requestToken(QWindow *win, uint32_t serial, const QString &appId)
 {
-    // XDG activation tokens are Wayland-specific
-    Q_UNUSED(win);
-    Q_UNUSED(serial);
-    Q_UNUSED(appId);
+    auto seat = KWin::waylandServer()->seat();
+    auto token = KWin::waylandServer()->xdgActivationIntegration()->requestPrivilegedToken(nullptr, seat->display()->serial(), seat, appId);
+    // Ensure that xdgActivationTokenArrived is always emitted asynchronously
+    QTimer::singleShot(0, [serial, token] {
+        Q_EMIT KWaylandExtras::self()->xdgActivationTokenArrived(serial, token);
+    });
 }
 
 void WindowSystem::setCurrentToken(const QString &token)

@@ -617,11 +617,11 @@ bool Shm::init()
 
 uint32_t toXNative(qreal value)
 {
-    // debug helper, check for things getting mangled
-    if (!qFuzzyIsNull(std::fmod(kwinApp()->xScale() * value, 1))) {
-        qDebug() << "precision lost! floating value sent to X" << kwinApp()->xScale() * value;
+    //debug helper, check for things getting mangled
+    if (!qFuzzyIsNull(std::fmod(kwinApp()->xwaylandScale() * value, 1))) {
+        qCDebug(KWIN_CORE) << "precision lost! floating value sent to X" << kwinApp()->xwaylandScale() * value;
     }
-    return static_cast<int32_t>(std::round(kwinApp()->xScale() * value));
+    return static_cast<int32_t>(std::round(kwinApp()->xwaylandScale() * value));
 }
 
 QPoint toXNative(const QPointF &p)
@@ -641,7 +641,7 @@ QRect toXNative(const QRectF &r)
 
 qreal fromXNative(int value)
 {
-    return value / kwinApp()->xScale();
+    return value / kwinApp()->xwaylandScale();
 }
 
 QRectF fromXNative(const QRect &r)
@@ -656,12 +656,12 @@ QSizeF fromXNative(const QSize &s)
 
 qreal nativeRound(qreal value)
 {
-    return std::round(kwinApp()->xScale() * value) / kwinApp()->xScale();
+    return fromXNative(toXNative(value));
 }
 
 static qreal nativeFloor(qreal value)
 {
-    return std::floor(value * kwinApp()->xScale()) / kwinApp()->xScale();
+    return std::floor(value * kwinApp()->xwaylandScale()) / kwinApp()->xwaylandScale();
 }
 
 QRectF nativeFloor(const QRectF &rect)

@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include <QScopedPointer>
 #include <QString>
 
 /**
@@ -284,7 +283,7 @@ public:
     }
 
 private:
-    QScopedPointer<TabBoxConfigPrivate> d;
+    TabBoxConfigPrivate *d;
 };
 
 } // namespace TabBox

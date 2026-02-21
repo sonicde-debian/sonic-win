@@ -13,7 +13,6 @@
 
 #include <QModelIndex>
 #include <QPixmap>
-#include <QScopedPointer>
 #include <QString>
 
 /**
@@ -292,7 +291,7 @@ private Q_SLOTS:
 
 private:
     friend class TabBoxHandlerPrivate;
-    QScopedPointer<TabBoxHandlerPrivate> d;
+    TabBoxHandlerPrivate *d;
 };
 
 /**

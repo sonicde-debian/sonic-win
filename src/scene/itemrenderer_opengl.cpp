@@ -185,9 +185,6 @@ void ItemRendererOpenGL::createRenderNode(Item *item, RenderContext *context)
                     .colorDescription = item->colorDescription(),
                     .renderingIntent = item->renderingIntent(),
                     .bufferReleasePoint = nullptr,
-                    .box = {},
-                    .borderRadius = {},
-                    .borderColor = {},
                 });
                 renderNode.geometry.postProcessTextureCoordinates(textureProvider->shadowTexture()->matrix(UnnormalizedCoordinates));
             }
@@ -206,9 +203,6 @@ void ItemRendererOpenGL::createRenderNode(Item *item, RenderContext *context)
                     .colorDescription = item->colorDescription(),
                     .renderingIntent = item->renderingIntent(),
                     .bufferReleasePoint = nullptr,
-                    .box = {},
-                    .borderRadius = {},
-                    .borderColor = {},
                 });
                 renderNode.geometry.postProcessTextureCoordinates(renderer->texture()->matrix(UnnormalizedCoordinates));
             }
@@ -229,9 +223,6 @@ void ItemRendererOpenGL::createRenderNode(Item *item, RenderContext *context)
                         .colorDescription = item->colorDescription(),
                         .renderingIntent = item->renderingIntent(),
                         .bufferReleasePoint = surfaceItem->bufferReleasePoint(),
-                        .box = {},
-                        .borderRadius = {},
-                        .borderColor = {},
                     });
                     renderNode.geometry.postProcessTextureCoordinates(surfaceTexture->texture().planes.at(0)->matrix(UnnormalizedCoordinates));
 
@@ -243,7 +234,7 @@ void ItemRendererOpenGL::createRenderNode(Item *item, RenderContext *context)
                         renderNode.box = QVector4D(top.box.x() + top.box.width() * 0.5,
                                                    top.box.y() + top.box.height() * 0.5,
                                                    top.box.width() * 0.5,
-                                                   top.box.height() * 0.5);
+                                                   top.box.height() * 0.5),
                         renderNode.borderRadius = top.radius.toVector();
                     }
                 }
@@ -262,9 +253,6 @@ void ItemRendererOpenGL::createRenderNode(Item *item, RenderContext *context)
                     .colorDescription = item->colorDescription(),
                     .renderingIntent = item->renderingIntent(),
                     .bufferReleasePoint = nullptr,
-                    .box = {},
-                    .borderRadius = {},
-                    .borderColor = {},
                 });
                 renderNode.geometry.postProcessTextureCoordinates(imageItem->texture()->matrix(UnnormalizedCoordinates));
             }
@@ -277,14 +265,12 @@ void ItemRendererOpenGL::createRenderNode(Item *item, RenderContext *context)
             const QRectF innerRect = outerRect.adjusted(thickness, thickness, -thickness, -thickness);
             context->renderNodes.append(RenderNode{
                 .traits = ShaderTrait::Border,
-                .textures = {},
                 .geometry = geometry,
                 .transformMatrix = context->transformStack.top(),
                 .opacity = context->opacityStack.top(),
                 .hasAlpha = true,
                 .colorDescription = borderItem->colorDescription(),
                 .renderingIntent = borderItem->renderingIntent(),
-                .bufferReleasePoint = nullptr,
                 .box = QVector4D(innerRect.x() + innerRect.width() * 0.5,
                                  innerRect.y() + innerRect.height() * 0.5,
                                  innerRect.width() * 0.5,
@@ -339,10 +325,6 @@ void ItemRendererOpenGL::renderItem(const RenderTarget &renderTarget, const Rend
     }
 
     RenderContext renderContext{
-        .renderNodes = {},
-        .transformStack = {},
-        .opacityStack = {},
-        .cornerStack = {},
         .projectionMatrix = viewport.projectionMatrix(),
         .rootTransform = data.toMatrix(viewport.scale()), // TODO: unify transforms
         .clip = region,

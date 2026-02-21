@@ -15,7 +15,6 @@
 #include "kwinxrenderutils.h"
 #include "x11_standalone_cursor.h"
 #include "x11_standalone_edge.h"
-#include "x11_standalone_inputbackend.h"
 #include "x11_standalone_placeholderoutput.h"
 #include "x11_standalone_windowselector.h"
 #if HAVE_GLX
@@ -194,11 +193,6 @@ std::unique_ptr<Cursor> X11StandaloneBackend::createPlatformCursor()
 #else
     return std::make_unique<X11Cursor>(false);
 #endif
-}
-
-std::unique_ptr<InputBackend> X11StandaloneBackend::createInputBackend()
-{
-    return std::make_unique<X11InputBackend>(this);
 }
 
 bool X11StandaloneBackend::hasGlx()

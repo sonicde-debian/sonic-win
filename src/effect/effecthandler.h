@@ -30,7 +30,9 @@
 
 #include <functional>
 
+#if KWIN_BUILD_X11
 #include <xcb/xcb.h>
+#endif
 
 class KConfigGroup;
 class QFont;
@@ -55,7 +57,7 @@ class Decoration;
 namespace KWin
 {
 
-class SurfaceInterface; // X11 only - stub for API compatibility
+class SurfaceInterface;
 class Display;
 class PaintDataPrivate;
 class WindowPaintDataPrivate;
@@ -152,6 +154,8 @@ class KWIN_EXPORT EffectsHandler : public QObject
      * @since 5.18
      */
     Q_PROPERTY(KWin::SessionState sessionState READ sessionState NOTIFY sessionStateChanged)
+
+    Q_PROPERTY(KWin::EffectWindow *inputPanel READ inputPanel NOTIFY inputPanelChanged)
 
     friend class Effect;
 
@@ -416,11 +420,7 @@ public:
     double animationTimeFactor() const;
 
     Q_SCRIPTABLE KWin::EffectWindow *findWindow(WId id) const;
-    // X11 only - always returns nullptr
-    Q_SCRIPTABLE KWin::EffectWindow *findWindow(SurfaceInterface *) const
-    {
-        return nullptr;
-    }
+    Q_SCRIPTABLE KWin::EffectWindow *findWindow(SurfaceInterface *surf) const;
     /**
      * Finds the EffectWindow for the internal window @p w.
      * If there is no such window @c null is returned.
@@ -484,6 +484,7 @@ public:
 
     QByteArray readRootProperty(long atom, long type, int format) const;
 
+#if KWIN_BUILD_X11
     /**
      * @brief Announces support for the feature with the given name. If no other Effect
      * has announced support for this feature yet, an X11 property will be installed on
@@ -515,6 +516,7 @@ public:
      * @since 4.11
      */
     void removeSupportProperty(const QByteArray &propertyName, Effect *effect);
+#endif
 
     /**
      * Returns @a true if the active window decoration has shadow API hooks.
@@ -574,8 +576,17 @@ public:
      */
     void doneOpenGLContextCurrent();
 
+#if KWIN_BUILD_X11
     xcb_connection_t *xcbConnection() const;
     xcb_window_t x11RootWindow() const;
+#endif
+
+    /**
+     * Interface to the Wayland display: this is relevant only
+     * on Wayland, on X11 it will be nullptr
+     * @since 5.5
+     */
+    Display *waylandDisplay() const;
 
     /**
      * Whether animations are supported by the Scene.
@@ -716,6 +727,9 @@ public:
     Output *findScreen(const QString &name) const;
     Output *findScreen(int screenId) const;
 
+    KWin::EffectWindow *inputPanel() const;
+    bool isInputPanelOverlay() const;
+
     QQmlEngine *qmlEngine() const;
 
     /**
@@ -743,10 +757,12 @@ public:
 
     void highlightWindows(const QList<EffectWindow *> &windows);
 
+#if KWIN_BUILD_X11
     bool isPropertyTypeRegistered(xcb_atom_t atom) const
     {
         return registered_atoms.contains(atom);
     }
+#endif
 
 Q_SIGNALS:
     /**
@@ -994,6 +1010,7 @@ Q_SIGNALS:
      */
     void windowDataChanged(KWin::EffectWindow *w, int role);
 
+#if KWIN_BUILD_X11
     /**
      * The xcb connection changed, either a new xcbConnection got created or the existing one
      * got destroyed.
@@ -1005,6 +1022,7 @@ Q_SIGNALS:
      * @since 5.11
      */
     void xcbConnectionChanged();
+#endif
 
     /**
      * This signal is emitted when active fullscreen effect changed.
@@ -1036,6 +1054,8 @@ Q_SIGNALS:
     void startupAdded(const QString &id, const QIcon &icon);
     void startupChanged(const QString &id, const QIcon &icon);
     void startupRemoved(const QString &id);
+
+    void inputPanelChanged();
 
 public Q_SLOTS:
     // slots for D-Bus interface
@@ -1087,7 +1107,9 @@ protected:
     Effect *keyboard_grab_effect;
     Effect *fullscreen_effect;
     QMultiMap<int, EffectPair> effect_order;
+#if KWIN_BUILD_X11
     QHash<long, int> registered_atoms;
+#endif
     QList<EffectPair> loaded_effects;
     CompositingType compositing_type;
     EffectsList m_activeEffects;
@@ -1095,7 +1117,9 @@ protected:
     EffectsIterator m_currentPaintWindowIterator;
     EffectsIterator m_currentPaintScreenIterator;
     typedef QHash<QByteArray, QList<Effect *>> PropertyEffectMap;
+#if KWIN_BUILD_X11
     PropertyEffectMap m_propertiesForEffects;
+#endif
     QHash<QByteArray, qulonglong> m_managedProperties;
     Compositor *m_compositor;
     WorkspaceScene *m_scene;

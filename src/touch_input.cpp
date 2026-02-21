@@ -14,6 +14,8 @@
 #include "decorations/decoratedwindow.h"
 #include "input_event_spy.h"
 #include "pointer_input.h"
+#include "wayland/seat.h"
+#include "wayland_server.h"
 #include "window.h"
 #include "workspace.h"
 // KDecoration
@@ -39,6 +41,9 @@ TouchInputRedirection::~TouchInputRedirection() = default;
 void TouchInputRedirection::init()
 {
     Q_ASSERT(!inited());
+    waylandServer()->seat()->setHasTouch(input()->hasTouch());
+    connect(input(), &InputRedirection::hasTouchChanged,
+            waylandServer()->seat(), &SeatInterface::setHasTouch);
 
     setInited(true);
     InputDeviceHandler::init();
@@ -55,6 +60,9 @@ void TouchInputRedirection::init()
     connect(workspace(), &QObject::destroyed, this, [this] {
         setInited(false);
     });
+    connect(waylandServer(), &QObject::destroyed, this, [this] {
+        setInited(false);
+    });
 }
 
 bool TouchInputRedirection::focusUpdatesBlocked()
@@ -63,6 +71,9 @@ bool TouchInputRedirection::focusUpdatesBlocked()
         return true;
     }
     m_windowUpdatedInCycle = true;
+    if (waylandServer()->seat()->isDragTouch()) {
+        return true;
+    }
     if (m_activeTouchPoints.count() > 1) {
         // first touch defines focus
         return true;
@@ -162,7 +173,7 @@ void TouchInputRedirection::cancel()
 
 void TouchInputRedirection::frame()
 {
-    if (!inited()) {
+    if (!inited() || !waylandServer()->seat()->hasTouch()) {
         return;
     }
     input()->processFilters(std::bind(&InputEventFilter::touchFrame, std::placeholders::_1));

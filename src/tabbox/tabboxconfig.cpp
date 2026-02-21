@@ -54,6 +54,7 @@ TabBoxConfig::TabBoxConfig()
 
 TabBoxConfig::~TabBoxConfig()
 {
+    delete d;
 }
 
 TabBoxConfig &TabBoxConfig::operator=(const KWin::TabBox::TabBoxConfig &object)

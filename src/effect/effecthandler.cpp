@@ -25,6 +25,8 @@
 #include "effectsadaptor.h"
 #include "input.h"
 #include "input_event.h"
+#include "inputmethod.h"
+#include "inputpanelv1window.h"
 #include "keyboard_input.h"
 #include "opengl/glshader.h"
 #include "opengl/glshadermanager.h"
@@ -38,9 +40,12 @@
 #include "scripting/scripting.h"
 #include "sm.h"
 #include "virtualdesktops.h"
+#include "wayland_server.h"
 #include "window_property_notify_x11_filter.h"
 #include "workspace.h"
+#if KWIN_BUILD_X11
 #include "x11window.h"
+#endif
 #if KWIN_BUILD_ACTIVITIES
 #include "activities.h"
 #endif
@@ -66,6 +71,7 @@
 
 namespace KWin
 {
+#if KWIN_BUILD_X11
 static QByteArray readWindowProperty(xcb_window_t win, xcb_atom_t atom, xcb_atom_t type, int format)
 {
     if (win == XCB_WINDOW_NONE) {
@@ -105,6 +111,7 @@ static xcb_atom_t registerSupportProperty(const QByteArray &propertyName)
     // TODO: add to _NET_SUPPORTED
     return atomReply->atom;
 }
+#endif
 
 //****************************************
 // EffectsHandler
@@ -197,6 +204,7 @@ EffectsHandler::EffectsHandler(Compositor *compositor, WorkspaceScene *scene)
     connect(kwinApp()->screenLockerWatcher(), &ScreenLockerWatcher::aboutToLock, this, &EffectsHandler::screenAboutToLock);
 #endif
 
+#if KWIN_BUILD_X11
     connect(kwinApp(), &Application::x11ConnectionChanged, this, [this]() {
         registered_atoms.clear();
         for (auto it = m_propertiesForEffects.keyBegin(); it != m_propertiesForEffects.keyEnd(); it++) {
@@ -219,6 +227,7 @@ EffectsHandler::EffectsHandler(Compositor *compositor, WorkspaceScene *scene)
     if (kwinApp()->x11Connection()) {
         m_x11WindowPropertyNotify = std::make_unique<WindowPropertyNotifyX11Filter>(this);
     }
+#endif
 
     // connect all clients
     for (Window *window : ws->windows()) {
@@ -227,6 +236,10 @@ EffectsHandler::EffectsHandler(Compositor *compositor, WorkspaceScene *scene)
 
     connect(ws, &Workspace::outputAdded, this, &EffectsHandler::screenAdded);
     connect(ws, &Workspace::outputRemoved, this, &EffectsHandler::screenRemoved);
+
+    if (auto inputMethod = kwinApp()->inputMethod()) {
+        connect(inputMethod, &InputMethod::panelChanged, this, &EffectsHandler::inputPanelChanged);
+    }
 
     connect(Cursors::self()->mouse(), &Cursor::cursorChanged, this, &EffectsHandler::cursorShapeChanged);
 
@@ -239,6 +252,7 @@ EffectsHandler::~EffectsHandler()
     KWin::effects = nullptr;
 }
 
+#if KWIN_BUILD_X11
 xcb_window_t EffectsHandler::x11RootWindow() const
 {
     return kwinApp()->x11RootWindow();
@@ -248,6 +262,7 @@ xcb_connection_t *EffectsHandler::xcbConnection() const
 {
     return kwinApp()->x11Connection();
 }
+#endif
 
 CompositingType EffectsHandler::compositingType() const
 {
@@ -662,6 +677,7 @@ bool EffectsHandler::hasKeyboardGrab() const
     return keyboard_grab_effect != nullptr;
 }
 
+#if KWIN_BUILD_X11
 void EffectsHandler::registerPropertyType(long atom, bool reg)
 {
     if (reg) {
@@ -716,13 +732,18 @@ void EffectsHandler::removeSupportProperty(const QByteArray &propertyName, Effec
     m_propertiesForEffects.remove(propertyName);
     m_compositor->removeSupportProperty(atom); // delayed removal
 }
+#endif
 
 QByteArray EffectsHandler::readRootProperty(long atom, long type, int format) const
 {
+#if KWIN_BUILD_X11
     if (!kwinApp()->x11Connection()) {
         return QByteArray();
     }
     return readWindowProperty(kwinApp()->x11RootWindow(), atom, type, format);
+#else
+    return {};
+#endif
 }
 
 void EffectsHandler::activateWindow(EffectWindow *effectWindow)
@@ -883,11 +904,22 @@ double EffectsHandler::animationTimeFactor() const
 
 EffectWindow *EffectsHandler::findWindow(WId id) const
 {
+#if KWIN_BUILD_X11
     if (X11Window *w = Workspace::self()->findClient(Predicate::WindowMatch, id)) {
         return w->effectWindow();
     }
     if (X11Window *w = Workspace::self()->findUnmanaged(id)) {
         return w->effectWindow();
+    }
+#endif
+    return nullptr;
+}
+EffectWindow *EffectsHandler::findWindow(SurfaceInterface *surf) const
+{
+    if (waylandServer()) {
+        if (Window *w = waylandServer()->findWindow(surf)) {
+            return w->effectWindow();
+        }
     }
     return nullptr;
 }
@@ -950,8 +982,8 @@ QList<EffectWindow *> EffectsHandler::currentTabBoxWindowList() const
     std::transform(std::cbegin(clients), std::cend(clients),
                    std::back_inserter(ret),
                    [](auto client) {
-        return client->effectWindow();
-    });
+                       return client->effectWindow();
+                   });
     return ret;
 #else
     return QList<EffectWindow *>();
@@ -1136,8 +1168,8 @@ QStringList EffectsHandler::loadedEffects() const
     std::transform(loaded_effects.constBegin(), loaded_effects.constEnd(),
                    std::back_inserter(listModules),
                    [](const EffectPair &pair) {
-        return pair.first;
-    });
+                       return pair.first;
+                   });
     return listModules;
 }
 
@@ -1158,8 +1190,8 @@ void EffectsHandler::unloadEffect(const QString &name)
 {
     auto it = std::find_if(effect_order.begin(), effect_order.end(),
                            [name](EffectPair &pair) {
-        return pair.first == name;
-    });
+                               return pair.first == name;
+                           });
     if (it == effect_order.end()) {
         qCDebug(KWIN_CORE) << "EffectsHandler::unloadEffect : Effect not loaded :" << name;
         return;
@@ -1187,10 +1219,12 @@ void EffectsHandler::destroyEffect(Effect *effect)
 
     stopMouseInterception(effect);
 
+#if KWIN_BUILD_X11
     const QList<QByteArray> properties = m_propertiesForEffects.keys();
     for (const QByteArray &property : properties) {
         removeSupportProperty(property, effect);
     }
+#endif
 
     delete effect;
 }
@@ -1219,8 +1253,8 @@ bool EffectsHandler::isEffectLoaded(const QString &name) const
 {
     auto it = std::find_if(loaded_effects.constBegin(), loaded_effects.constEnd(),
                            [&name](const EffectPair &pair) {
-        return pair.first == name;
-    });
+                               return pair.first == name;
+                           });
     return it != loaded_effects.constEnd();
 }
 
@@ -1244,8 +1278,8 @@ QList<bool> EffectsHandler::areEffectsSupported(const QStringList &names)
     std::transform(names.constBegin(), names.constEnd(),
                    std::back_inserter(retList),
                    [this](const QString &name) {
-        return isEffectSupported(name);
-    });
+                       return isEffectSupported(name);
+                   });
     return retList;
 }
 
@@ -1311,6 +1345,14 @@ bool EffectsHandler::blocksDirectScanout() const
     });
 }
 
+Display *EffectsHandler::waylandDisplay() const
+{
+    if (waylandServer()) {
+        return waylandServer()->display();
+    }
+    return nullptr;
+}
+
 QVariant EffectsHandler::kwinOption(KWinOption kwopt)
 {
     switch (kwopt) {
@@ -1332,8 +1374,8 @@ QString EffectsHandler::supportInformation(const QString &name) const
 {
     auto it = std::find_if(loaded_effects.constBegin(), loaded_effects.constEnd(),
                            [name](const EffectPair &pair) {
-        return pair.first == name;
-    });
+                               return pair.first == name;
+                           });
     if (it == loaded_effects.constEnd()) {
         return QString();
     }
@@ -1508,6 +1550,16 @@ void EffectsHandler::renderOffscreenQuickView(const RenderTarget &renderTarget, 
         }
 
         ShaderManager::instance()->popShader();
+    } else if (compositingType() == QPainterCompositing) {
+        QPainter *painter = effects->scenePainter();
+        const QImage buffer = w->bufferAsImage();
+        if (buffer.isNull()) {
+            return;
+        }
+        painter->save();
+        painter->setOpacity(w->opacity());
+        painter->drawImage(w->geometry(), buffer);
+        painter->restore();
     }
 }
 
@@ -1545,6 +1597,32 @@ Output *EffectsHandler::findScreen(int screenId) const
 bool EffectsHandler::isCursorHidden() const
 {
     return Cursors::self()->isCursorHidden();
+}
+
+KWin::EffectWindow *EffectsHandler::inputPanel() const
+{
+    if (!kwinApp()->inputMethod() || !kwinApp()->inputMethod()->isEnabled()) {
+        return nullptr;
+    }
+
+    auto panel = kwinApp()->inputMethod()->panel();
+    if (panel) {
+        return panel->effectWindow();
+    }
+    return nullptr;
+}
+
+bool EffectsHandler::isInputPanelOverlay() const
+{
+    if (!kwinApp()->inputMethod() || !kwinApp()->inputMethod()->isEnabled()) {
+        return true;
+    }
+
+    auto panel = kwinApp()->inputMethod()->panel();
+    if (panel) {
+        return panel->mode() == InputPanelV1Window::Mode::Overlay;
+    }
+    return true;
 }
 
 QQmlEngine *EffectsHandler::qmlEngine() const

@@ -107,8 +107,11 @@ ZoomEffect::ZoomEffect()
     connect(effects, &EffectsHandler::screenRemoved, this, &ZoomEffect::slotScreenRemoved);
 
 #if HAVE_ACCESSIBILITY
-    m_accessibilityIntegration = new ZoomAccessibilityIntegration(this);
-    connect(m_accessibilityIntegration, &ZoomAccessibilityIntegration::focusPointChanged, this, &ZoomEffect::moveFocus);
+    if (!effects->waylandDisplay()) {
+        // on Wayland, the accessibility integration can cause KWin to hang
+        m_accessibilityIntegration = new ZoomAccessibilityIntegration(this);
+        connect(m_accessibilityIntegration, &ZoomAccessibilityIntegration::focusPointChanged, this, &ZoomEffect::moveFocus);
+    }
 #endif
 
     const auto windows = effects->stackingOrder();
@@ -258,7 +261,7 @@ ZoomEffect::OffscreenData *ZoomEffect::ensureOffscreenData(const RenderTarget &r
 {
     const QSize nativeSize = renderTarget.size();
 
-    OffscreenData &data = m_offscreenData[nullptr];
+    OffscreenData &data = m_offscreenData[effects->waylandDisplay() ? screen : nullptr];
     data.viewport = viewport.renderRect();
     data.color = renderTarget.colorDescription();
 
@@ -544,7 +547,7 @@ void ZoomEffect::moveZoomDown()
 
 void ZoomEffect::moveMouseToFocus()
 {
-    if (!ZoomEffect::isActive()) {
+    if (effects->waylandDisplay() || !ZoomEffect::isActive()) {
         const auto window = effects->activeWindow();
         if (!window) {
             return;

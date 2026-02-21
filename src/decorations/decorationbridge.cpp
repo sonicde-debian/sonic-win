@@ -14,6 +14,8 @@
 #include "decorations_logging.h"
 #include "settings.h"
 // KWin core
+#include "wayland/server_decoration.h"
+#include "wayland_server.h"
 #include "window.h"
 #include "workspace.h"
 
@@ -102,6 +104,9 @@ void DecorationBridge::init()
 {
     m_noPlugin = readNoPlugin();
     if (m_noPlugin) {
+        if (waylandServer()) {
+            waylandServer()->decorationManager()->setDefaultMode(ServerSideDecorationManagerInterface::Mode::None);
+        }
         return;
     }
     m_plugin = readPlugin();
@@ -117,6 +122,9 @@ void DecorationBridge::init()
             m_plugin = s_aurorae;
             initPlugin();
         }
+    }
+    if (waylandServer()) {
+        waylandServer()->decorationManager()->setDefaultMode(m_factory ? ServerSideDecorationManagerInterface::Mode::Server : ServerSideDecorationManagerInterface::Mode::None);
     }
 }
 

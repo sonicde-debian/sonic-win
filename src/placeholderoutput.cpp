@@ -17,17 +17,17 @@ PlaceholderOutput::PlaceholderOutput(const QSize &size, qreal scale)
     m_renderLoop->setRefreshRate(mode->refreshRate());
     m_renderLoop->inhibit();
 
-    State state{};
-    state.scale = scale;
-    state.modes = {mode};
-    state.currentMode = mode;
-    state.enabled = true;
-    setState(state);
+    setState(State{
+        .scale = scale,
+        .modes = {mode},
+        .currentMode = mode,
+        .enabled = true,
+    });
 
-    Information info{};
-    info.name = QStringLiteral("Placeholder-1");
-    info.placeholder = true;
-    setInformation(info);
+    setInformation(Information{
+        .name = QStringLiteral("Placeholder-1"),
+        .placeholder = true,
+    });
 }
 
 PlaceholderOutput::~PlaceholderOutput()

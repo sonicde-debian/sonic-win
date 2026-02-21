@@ -8,16 +8,12 @@
 */
 #pragma once
 
+#include "inputmethod.h"
 #include <QObject>
-#include <kwin_export.h>
 
 namespace KWin
 {
 
-/**
- * Stub VirtualKeyboardDBus class.
- * The full virtual keyboard functionality requires Wayland protocols.
- */
 class KWIN_EXPORT VirtualKeyboardDBus : public QObject
 {
     Q_OBJECT
@@ -28,7 +24,7 @@ class KWIN_EXPORT VirtualKeyboardDBus : public QObject
     Q_PROPERTY(bool visible READ isVisible NOTIFY visibleChanged)
     Q_PROPERTY(bool activeClientSupportsTextInput READ activeClientSupportsTextInput NOTIFY activeClientSupportsTextInputChanged)
 public:
-    explicit VirtualKeyboardDBus(QObject *parent = nullptr);
+    explicit VirtualKeyboardDBus(InputMethod *inputMethod);
     ~VirtualKeyboardDBus() override;
     bool isEnabled() const;
 
@@ -48,6 +44,9 @@ Q_SIGNALS:
     Q_SCRIPTABLE void visibleChanged();
     Q_SCRIPTABLE void availableChanged();
     Q_SCRIPTABLE void activeClientSupportsTextInputChanged();
+
+private:
+    InputMethod *const m_inputMethod;
 };
 
 }

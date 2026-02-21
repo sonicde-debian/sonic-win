@@ -92,6 +92,7 @@ public:
     bool activatesForPointer() const;
     bool activatesForTouchGesture() const;
 
+#if KWIN_BUILD_X11
     /**
      * The window id of the native window representing the edge.
      * Default implementation returns @c 0, which means no window.
@@ -104,6 +105,7 @@ public:
      * The default implementation returns @c 0, which means no window.
      */
     virtual quint32 approachWindow() const;
+#endif
 
 public Q_SLOTS:
     void reserve();
@@ -331,11 +333,13 @@ public:
     void ensureOnTop();
     bool isEntered(const QPointF &pos, std::chrono::microseconds timestamp);
 
+#if KWIN_BUILD_X11
     /**
      * Returns a QList of all existing screen edge windows
      * @return all existing screen edge windows in a QList
      */
     QList<xcb_window_t> windows() const;
+#endif
 
     bool isDesktopSwitching() const;
     bool isDesktopSwitchingMovingClients() const;
@@ -364,8 +368,10 @@ public:
         return m_gestureRecognizer;
     }
 
+#if KWIN_BUILD_X11
     bool handleDndNotify(xcb_window_t window, const QPoint &point);
     bool handleEnterNotifiy(xcb_window_t window, const QPoint &point, const std::chrono::microseconds &timestamp);
+#endif
     bool remainActiveOnFullscreen() const;
     const std::vector<std::unique_ptr<Edge>> &edges() const;
 

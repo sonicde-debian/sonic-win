@@ -67,16 +67,19 @@
 #include "compositor.h"
 #include "effect/effecthandler.h"
 #include "focuschain.h"
-#include "group.h"
 #include "internalwindow.h"
-#include "netinfo.h"
 #include "rules.h"
 #include "screenedge.h"
 #include "tabbox/tabbox.h"
 #include "utils/common.h"
 #include "virtualdesktops.h"
+#include "wayland_server.h"
 #include "workspace.h"
+#if KWIN_BUILD_X11
+#include "group.h"
+#include "netinfo.h"
 #include "x11window.h"
+#endif
 
 #include <array>
 
@@ -102,7 +105,9 @@ void Workspace::updateStackingOrder(bool propagate_new_windows)
     force_restacking = false;
     stacking_order = new_stacking_order;
     if (changed || propagate_new_windows) {
+#if KWIN_BUILD_X11
         propagateWindows(propagate_new_windows);
+#endif
 
         for (int i = 0; i < stacking_order.size(); ++i) {
             stacking_order[i]->setStackingOrder(i);
@@ -116,6 +121,7 @@ void Workspace::updateStackingOrder(bool propagate_new_windows)
     }
 }
 
+#if KWIN_BUILD_X11
 /**
  * Some fullscreen effects have to raise the screenedge on top of an input window, thus all windows
  * this function puts them back where they belong for regular use and is some cheap variant of
@@ -213,6 +219,7 @@ void Workspace::propagateWindows(bool propagate_new_windows)
     }
     rootInfo()->setClientListStacking(cl.constData(), cl.size());
 }
+#endif
 
 /**
  * Returns topmost visible window. Windows on the dock, the desktop
@@ -264,6 +271,7 @@ Window *Workspace::findDesktop(VirtualDesktop *desktop, Output *output) const
     return nullptr;
 }
 
+#if KWIN_BUILD_X11
 static Layer layerForWindow(const X11Window *window)
 {
     Layer layer = window->layer();
@@ -289,12 +297,15 @@ static Layer layerForWindow(const X11Window *window)
 
     return layer;
 }
+#endif
 
 static Layer computeLayer(const Window *window)
 {
+#if KWIN_BUILD_X11
     if (auto x11Window = qobject_cast<const X11Window *>(window)) {
         return layerForWindow(x11Window);
     }
+#endif
     return window->layer();
 }
 
@@ -370,6 +381,7 @@ void Workspace::lowerWindow(Window *window, bool nogroup)
     unconstrained_stacking_order.removeAll(window);
     unconstrained_stacking_order.prepend(window);
     // TODO How X11-specific is this implementation?
+#if KWIN_BUILD_X11
     if (!nogroup && window->isTransient()) {
         // lower also all windows in the group, in their reversed stacking order
         QList<X11Window *> wins;
@@ -382,6 +394,7 @@ void Workspace::lowerWindow(Window *window, bool nogroup)
             }
         }
     }
+#endif
 }
 
 void Workspace::lowerWindowWithinApplication(Window *window)
@@ -470,6 +483,7 @@ void Workspace::raiseWindowWithinApplication(Window *window)
     }
 }
 
+#if KWIN_BUILD_X11
 void Workspace::raiseWindowRequest(Window *window, NET::RequestSource src, xcb_timestamp_t timestamp)
 {
     if (src == NET::FromTool || allowFullClientRaising(window, timestamp)) {
@@ -492,6 +506,7 @@ void Workspace::lowerWindowRequest(X11Window *window, NET::RequestSource src, xc
         lowerWindowWithinApplication(window);
     }
 }
+#endif
 
 void Workspace::stackBelow(Window *window, Window *reference)
 {
@@ -553,6 +568,7 @@ void Workspace::restackWindowUnderActive(Window *window)
     stackBelow(window, reference);
 }
 
+#if KWIN_BUILD_X11
 void Workspace::restoreSessionStackingOrder(X11Window *window)
 {
     if (window->sessionStackingOrder() < 0) {
@@ -572,6 +588,7 @@ void Workspace::restoreSessionStackingOrder(X11Window *window)
     }
     unconstrained_stacking_order.append(window);
 }
+#endif
 
 /**
  * Returns a stacking order based upon \a list that fulfills certain contained.
@@ -683,11 +700,13 @@ QList<T *> ensureStackingOrderInList(const QList<Window *> &stackingOrder, const
 }
 }
 
+#if KWIN_BUILD_X11
 // Ensure list is in stacking order
 QList<X11Window *> Workspace::ensureStackingOrder(const QList<X11Window *> &list) const
 {
     return ensureStackingOrderInList(stacking_order, list);
 }
+#endif
 
 QList<Window *> Workspace::ensureStackingOrder(const QList<Window *> &list) const
 {
@@ -699,6 +718,7 @@ QList<Window *> Workspace::unconstrainedStackingOrder() const
     return unconstrained_stacking_order;
 }
 
+#if KWIN_BUILD_X11
 bool Workspace::updateXStackingOrder()
 {
     // we use our stacking order for managed windows, but X's for override-redirect windows
@@ -720,5 +740,6 @@ bool Workspace::updateXStackingOrder()
     }
     return changed;
 }
+#endif
 
 } // namespace

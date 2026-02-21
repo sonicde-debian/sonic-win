@@ -109,10 +109,7 @@ void GenericScriptedConfig::createUi()
     QFile uiFile(uiPath);
     m_translator->setTranslationDomain(metaData.value("X-KWin-Config-TranslationDomain"));
 
-    if (!uiFile.open(QFile::ReadOnly)) {
-        layout->addWidget(new QLabel(i18nc("Required file could not be opened", "Could not open %1", qPrintable(uiPath))));
-        return;
-    }
+    uiFile.open(QFile::ReadOnly);
     QWidget *customConfigForm = loader->load(&uiFile, widget());
     m_translator->addContextToMonitor(customConfigForm->objectName());
     uiFile.close();

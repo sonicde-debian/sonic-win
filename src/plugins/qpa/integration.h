@@ -27,6 +27,7 @@ class Output;
 namespace QPA
 {
 
+class Clipboard;
 class Screen;
 
 class Integration : public QObject, public QPlatformIntegration
@@ -50,6 +51,7 @@ public:
     QPlatformInputContext *inputContext() const override;
 
     QPlatformServices *services() const override;
+    QPlatformClipboard *clipboard() const override;
     void initialize() override;
 
     QHash<Output *, Screen *> screens() const;
@@ -70,6 +72,7 @@ private:
 #else
     std::unique_ptr<QGenericUnixServices> m_services;
 #endif
+    std::unique_ptr<Clipboard> m_clipboard;
 };
 
 }
