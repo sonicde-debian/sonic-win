@@ -1,0 +1,84 @@
+kwin-x11 (4:6.5.4-4) unstable; urgency=medium
+
+  [ Aurélien COUDERC ]
+  * Readd libxi-dev, it was removed by mistake and breaks XInput
+    integration. Thanks Ahmad Ismail for the analysis. (Closes: #1118626)
+
+ -- Aurélien COUDERC <coucouf@debian.org>  Sat, 14 Feb 2026 16:26:58 +0100
+
+kwin-x11 (4:6.5.4-3) unstable; urgency=medium
+
+  [ Patrick Franz ]
+  * Backport patch to fix build failures against Qt 6.10.2.
+  * Add myself as uploader.
+
+ -- Patrick Franz <deltaone@debian.org>  Sat, 14 Feb 2026 08:26:20 +0100
+
+kwin-x11 (4:6.5.4-2) unstable; urgency=medium
+
+  [ Aurélien COUDERC ]
+  * Add missing Breaks/Replaces against kwin-data (<< 4:6.4.91-1~). (Closes:
+    #1126341)
+
+ -- Aurélien COUDERC <coucouf@debian.org>  Sat, 24 Jan 2026 12:09:53 +0100
+
+kwin-x11 (4:6.5.4-1) unstable; urgency=medium
+
+  [ Aurélien COUDERC ]
+  * New upstream release (6.5.4).
+  * Update build-deps and deps with the info from cmake.
+
+ -- Aurélien COUDERC <coucouf@debian.org>  Tue, 09 Dec 2025 21:17:13 +0100
+
+kwin-x11 (4:6.5.3-1) unstable; urgency=medium
+
+  [ Aurélien COUDERC ]
+  * New upstream release (6.5.3).
+  * Update build-deps and deps with the info from cmake.
+
+ -- Aurélien COUDERC <coucouf@debian.org>  Tue, 18 Nov 2025 19:27:54 +0100
+
+kwin-x11 (4:6.5.2-1) unstable; urgency=medium
+
+  [ Aurélien COUDERC ]
+  * Migrate to debian/watch version 5 syntax.
+  * Add/update David Edmundson’s key in upstream keyring.
+  * New upstream release (6.5.2).
+  * Update build-deps and deps with the info from cmake.
+
+ -- Aurélien COUDERC <coucouf@debian.org>  Tue, 04 Nov 2025 21:37:44 +0100
+
+kwin-x11 (4:6.5.1-1) unstable; urgency=medium
+
+  [ Aurélien COUDERC ]
+  * New upstream release (6.5.1).
+  * Update build-deps and deps with the info from cmake.
+
+ -- Aurélien COUDERC <coucouf@debian.org>  Tue, 28 Oct 2025 23:18:27 +0100
+
+kwin-x11 (4:6.5.0-1) unstable; urgency=medium
+
+  [ Aurélien COUDERC ]
+  * New upstream release (6.5.0).
+  * Update build-deps and deps with the info from cmake.
+  * Refresh copyright information.
+  * Release to unstable.
+
+ -- Aurélien COUDERC <coucouf@debian.org>  Thu, 16 Oct 2025 22:04:24 +0200
+
+kwin-x11 (4:6.4.91-1) experimental; urgency=medium
+
+  [ Rik Mills ]
+  * Initial release to Ubuntu (LP: #2110572)
+
+  [ Aurélien COUDERC ]
+  * New upstream release (6.4.91).
+  * Update build-deps and deps with the info from cmake.
+  * Initial release. (Closes: #1117539)
+  * Debianize package, thanks Rik Mills for the initial packaging work !
+  * Cleanup build-dependencies.
+  * Drop /usr/bin/kwin compatibility link.
+  * Don’t depend on xorg metapackage.
+  * Refresh lintian overrides.
+
+ -- Aurélien COUDERC <coucouf@debian.org>  Mon, 06 Oct 2025 22:22:41 +0200
