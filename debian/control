@@ -103,8 +103,7 @@ Standards-Version: 4.7.2
 Package: sonic-win
 Architecture: any
 Depends: hwdata,
-# move this to our packaging
-         kwin-common,
+#         kwin-common,
          sonic-win-data (= ${source:Version}),
          xauth,
          xinit,
