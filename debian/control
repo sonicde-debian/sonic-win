@@ -103,8 +103,8 @@ Standards-Version: 4.7.2
 Package: sonic-win
 Architecture: any
 Depends: hwdata,
-#         kwin-common,
-         sonic-win-common,
+# move this to our packaging
+         kwin-common,
          sonic-win-data (= ${source:Version}),
          xauth,
          xinit,
@@ -167,26 +167,6 @@ Description: An X11-only, lighter-weight fork of KWin - data files
  Shell using sonic-win as it's window manager.
  .
  This package contains the sonic-win data files
-
-# NOTE: REMOVE THIS AT 6.6.0!
-# AT THAT POINT, WAYLAND WILL BE FULLY DELETED
-Package: sonic-win-common
-Architecture: any
-Depends: ${misc:Depends},
-Provides: kwin-x11-common (= ${binary:Version})
-Breaks: kwin-x11-common
-Description: An X11-only, lighter-weight fork of KWin - common files
- sonic-win is an X11 window manager and a compositing manager.
- Its primary usage is in conjunction with a Desktop Shell
- (e.g. sonic-desktop) sonic-win is designed to stay out of the way;
- users should not notice that they use a window manager at all.
- Nevertheless sonic-win provides a steep learning curve for
- advanced features, which are available, if they do not conflict
- with the primary mission. sonic-win does not have a dedicated targeted
- user group, but follows the targeted user group of the Desktop
- Shell using sonic-win as it's window manager.
- .
- This package contains the sonic-win common files
 
 Package: sonic-win-dev
 Section: libdevel
