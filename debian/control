@@ -1,9 +1,7 @@
 Source: sonic-win
 Section: kde
 Priority: optional
-Maintainer: Debian Qt/KDE Maintainers <debian-qt-kde@lists.debian.org>
-Uploaders: Aurélien COUDERC <coucouf@debian.org>,
-           Patrick Franz <deltaone@debian.org>,
+Maintainer: NexusSfan <nexussfan@duck.com>
 Build-Depends: debhelper-compat (= 13),
                dh-sequence-kf6,
                breeze-dev (>= 4:6.5.4~),
@@ -105,12 +103,13 @@ Standards-Version: 4.7.2
 Package: sonic-win
 Architecture: any
 Depends: hwdata,
+# move this to our packaging
          kwin-common,
          sonic-win-data (= ${source:Version}),
          xauth,
          xinit,
          xkb-data,
-         xserver-xorg,
+         xserver,
          ${misc:Depends},
          ${shlibs:Depends},
 Recommends: kde-style-breeze,
@@ -123,16 +122,18 @@ Breaks: kwin-common (<< 4:6.4.0~),
         kwin-x11
 Replaces: kwin-common (<< 4:6.4.0~),
           kwin-data (<< 4:6.4.91-1~),
-Description: KDE window manager, X11 version
- KWin (pronounced as one syllable "kwin") is the window
- manager for the KDE Plasma Desktop. It gives you complete
- control over your windows, making sure they're not in the way
- but aid you in your task. It paints the window decoration,
- the bar on top of every window with (configurable) buttons
- like close, maximize and minimize. It also handles placing
- of windows and switching between them.
+Description: An X11-only, lighter-weight fork of KWin
+ sonic-win is an X11 window manager and a compositing manager.
+ Its primary usage is in conjunction with a Desktop Shell
+ (e.g. sonic-desktop) sonic-win is designed to stay out of the way;
+ users should not notice that they use a window manager at all.
+ Nevertheless sonic-win provides a steep learning curve for
+ advanced features, which are available, if they do not conflict
+ with the primary mission. sonic-win does not have a dedicated targeted
+ user group, but follows the targeted user group of the Desktop
+ Shell using sonic-win as it's window manager.
  .
- This package provides KWin version for X11.
+ This package provides sonic-win for X11.
 
 Package: sonic-win-data
 Architecture: all
@@ -154,16 +155,18 @@ Recommends: plasma-desktoptheme,
             systemsettings,
 Provides: kwin-x11-data
 Breaks: kwin-x11-data
-Description: KDE window manager X11 data files
- KWin (pronounced as one syllable "kwin") is the window
- manager for the KDE Plasma Desktop. It gives you complete
- control over your windows, making sure they're not in the way
- but aid you in your task. It paints the window decoration,
- the bar on top of every window with (configurable) buttons
- like close, maximize and minimize. It also handles placing
- of windows and switching between them.
+Description: An X11-only, lighter-weight fork of KWin - data files
+ sonic-win is an X11 window manager and a compositing manager.
+ Its primary usage is in conjunction with a Desktop Shell
+ (e.g. sonic-desktop) sonic-win is designed to stay out of the way;
+ users should not notice that they use a window manager at all.
+ Nevertheless sonic-win provides a steep learning curve for
+ advanced features, which are available, if they do not conflict
+ with the primary mission. sonic-win does not have a dedicated targeted
+ user group, but follows the targeted user group of the Desktop
+ Shell using sonic-win as it's window manager.
  .
- This package contains the KWin X11 data files
+ This package contains the sonic-win data files
 
 Package: sonic-win-dev
 Section: libdevel
@@ -178,16 +181,18 @@ Depends: libepoxy-dev (>= 1.3),
          ${misc:Depends},
 Provides: kwin-x11-dev
 Breaks: kwin-x11-dev
-Description: KDE window manager X11 - devel files
- KWin (pronounced as one syllable "kwin") is the window
- manager for the KDE Plasma Desktop. It gives you complete
- control over your windows, making sure they're not in the way
- but aid you in your task. It paints the window decoration,
- the bar on top of every window with (configurable) buttons
- like close, maximize and minimize. It also handles placing
- of windows and switching between them.
+Description: An X11-only, lighter-weight fork of KWin - devel files
+ sonic-win is an X11 window manager and a compositing manager.
+ Its primary usage is in conjunction with a Desktop Shell
+ (e.g. sonic-desktop) sonic-win is designed to stay out of the way;
+ users should not notice that they use a window manager at all.
+ Nevertheless sonic-win provides a steep learning curve for
+ advanced features, which are available, if they do not conflict
+ with the primary mission. sonic-win does not have a dedicated targeted
+ user group, but follows the targeted user group of the Desktop
+ Shell using sonic-win as it's window manager.
  .
- This package provides the development files for KWin X11
+ This package provides the development files for sonic-win
 
 Package: libsonicwin6
 Section: libs
@@ -197,13 +202,15 @@ Depends: sonic-win-data (= ${source:Version}),
          ${shlibs:Depends},
 Provides: libkwin-x11-6
 Breaks: libkwin-x11-6
-Description: KDE window manager X11 library
- KWin (pronounced as one syllable "kwin") is the window
- manager for the KDE Plasma Desktop. It gives you complete
- control over your windows, making sure they're not in the way
- but aid you in your task. It paints the window decoration,
- the bar on top of every window with (configurable) buttons
- like close, maximize and minimize. It also handles placing
- of windows and switching between them.
+Description: An X11-only, lighter-weight fork of KWin - x11 library
+ sonic-win is an X11 window manager and a compositing manager.
+ Its primary usage is in conjunction with a Desktop Shell
+ (e.g. sonic-desktop) sonic-win is designed to stay out of the way;
+ users should not notice that they use a window manager at all.
+ Nevertheless sonic-win provides a steep learning curve for
+ advanced features, which are available, if they do not conflict
+ with the primary mission. sonic-win does not have a dedicated targeted
+ user group, but follows the targeted user group of the Desktop
+ Shell using sonic-win as it's window manager.
  .
- This package provides the shared library for KWin X11
+ This package provides the shared library for sonic-win
