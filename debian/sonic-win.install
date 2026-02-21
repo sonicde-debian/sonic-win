@@ -1,0 +1,12 @@
+usr/bin/kwin_x11
+usr/lib/*/kconf_update_bin/
+usr/lib/*/libexec/
+usr/lib/*/libkcmkwincommon-x11.so.*
+usr/lib/*/qt6/plugins/kf6/packagestructure/
+usr/lib/*/qt6/plugins/kwin-x11/effects/
+usr/lib/*/qt6/plugins/kwin-x11/plugins/
+usr/lib/*/qt6/plugins/plasma/kcms/
+usr/lib/*/qt6/qml/org/kde/kwin_x11/private/
+usr/lib/systemd/user/plasma-kwin_x11.service
+usr/share/applications/
+usr/share/knsrcfiles/
