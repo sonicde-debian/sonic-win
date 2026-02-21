@@ -22,7 +22,9 @@
 #if KWIN_BUILD_ACTIVITIES
 #include "activities.h"
 #endif
+#if KWIN_BUILD_X11
 #include "x11window.h"
+#endif
 
 #include <QJSEngine>
 
@@ -299,12 +301,14 @@ void WorkspaceWrapper::raiseWindow(KWin::Window *window)
     }
 }
 
+#if KWIN_BUILD_X11
 Window *WorkspaceWrapper::getClient(qulonglong windowId)
 {
     auto window = Workspace::self()->findClient(Predicate::WindowMatch, windowId);
     QJSEngine::setObjectOwnership(window, QJSEngine::CppOwnership);
     return window;
 }
+#endif
 
 QList<KWin::Window *> WorkspaceWrapper::windowAt(const QPointF &pos, int count) const
 {

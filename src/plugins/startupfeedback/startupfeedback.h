@@ -11,7 +11,9 @@
 #include "effect/effect.h"
 #include <KConfigWatcher>
 
+#if KWIN_BUILD_X11
 #include <KStartupInfo>
+#endif
 #include <QIcon>
 #include <QObject>
 
@@ -79,8 +81,10 @@ private:
     QSize feedbackIconSize() const;
 
     qreal m_bounceSizesRatio;
+#if KWIN_BUILD_X11
     KStartupInfo *m_startupInfo;
     KSelectionOwner *m_selection;
+#endif
     QString m_currentStartup;
     QMap<QString, Startup> m_startups;
     bool m_active;

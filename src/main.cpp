@@ -11,7 +11,9 @@
 
 #include "config-kwin.h"
 
+#if KWIN_BUILD_X11
 #include "atoms.h"
+#endif
 #include "colors/colormanager.h"
 #include "compositor.h"
 #include "core/outputbackend.h"
@@ -21,6 +23,7 @@
 #include "cursorsource.h"
 #include "effect/effecthandler.h"
 #include "input.h"
+#include "inputmethod.h"
 #include "opengl/gltexture.h"
 #include "opengl/glutils.h"
 #include "options.h"
@@ -31,10 +34,13 @@
 #include "screenedge.h"
 #include "sm.h"
 #include "tabletmodemanager.h"
+#include "wayland/surface.h"
 #include "workspace.h"
 
+#if KWIN_BUILD_X11
 #include "utils/xcbutils.h"
 #include "x11eventfilter.h"
+#endif
 
 #if KWIN_BUILD_SCREENLOCKER
 #include "screenlockerwatcher.h"
@@ -48,7 +54,9 @@
 // Qt
 #include <QCommandLineParser>
 #include <QQuickWindow>
+#if KWIN_BUILD_X11
 #include <private/qtx11extras_p.h>
+#endif
 #include <qplatformdefs.h>
 
 #include <cerrno>
@@ -58,10 +66,12 @@
 #endif
 #include <unistd.h>
 
+#if KWIN_BUILD_X11
 // xcb
 #include <xcb/damage.h>
 #ifndef XCB_GE_GENERIC
 #define XCB_GE_GENERIC 35
+#endif
 #endif
 
 Q_DECLARE_METATYPE(KSharedConfigPtr)
@@ -70,12 +80,16 @@ namespace KWin
 {
 
 Options *options;
+#if KWIN_BUILD_X11
 Atoms *atoms;
+#endif
 int Application::crashes = 0;
 
 Application::Application(Application::OperationMode mode, int &argc, char **argv)
     : QApplication(argc, argv)
+#if KWIN_BUILD_X11
     , m_eventFilter(new XcbEventFilter())
+#endif
     , m_configLock(false)
     , m_config(KSharedConfig::openConfig(QStringLiteral("kwinrc")))
     , m_kxkbConfig()
@@ -83,6 +97,7 @@ Application::Application(Application::OperationMode mode, int &argc, char **argv
 {
     qRegisterMetaType<Options::WindowOperation>("Options::WindowOperation");
     qRegisterMetaType<KWin::EffectWindow *>();
+    qRegisterMetaType<KWin::SurfaceInterface *>("KWin::SurfaceInterface *");
     qRegisterMetaType<KSharedConfigPtr>();
     qRegisterMetaType<std::chrono::nanoseconds>();
 }
@@ -99,7 +114,7 @@ Application::OperationMode Application::operationMode() const
 
 bool Application::shouldUseWaylandForCompositing() const
 {
-    return false;
+    return m_operationMode == OperationModeWayland;
 }
 
 void Application::start()
@@ -138,8 +153,10 @@ Application::~Application()
 
 void Application::destroyAtoms()
 {
+#if KWIN_BUILD_X11
     delete atoms;
     atoms = nullptr;
+#endif
 }
 
 void Application::destroyPlatform()
@@ -250,7 +267,9 @@ void Application::createInput()
 
 void Application::createAtoms()
 {
+#if KWIN_BUILD_X11
     atoms = new Atoms;
+#endif
 }
 
 void Application::createOptions()
@@ -268,6 +287,11 @@ void Application::createColorManager()
     m_colorManager = std::make_unique<ColorManager>();
 }
 
+void Application::createInputMethod()
+{
+    m_inputMethod = std::make_unique<InputMethod>();
+}
+
 void Application::createTabletModeManager()
 {
     m_tabletModeManager = std::make_unique<TabletModeManager>();
@@ -278,6 +302,7 @@ TabletModeManager *Application::tabletModeManager() const
     return m_tabletModeManager.get();
 }
 
+#if KWIN_BUILD_X11
 void Application::installNativeX11EventFilter()
 {
     installNativeEventFilter(m_eventFilter.get());
@@ -287,6 +312,7 @@ void Application::removeNativeX11EventFilter()
 {
     removeNativeEventFilter(m_eventFilter.get());
 }
+#endif
 
 void Application::destroyInput()
 {
@@ -313,6 +339,11 @@ void Application::destroyColorManager()
     m_colorManager.reset();
 }
 
+void Application::destroyInputMethod()
+{
+    m_inputMethod.reset();
+}
+
 std::unique_ptr<Edge> Application::createScreenEdge(ScreenEdges *edges)
 {
     return std::make_unique<Edge>(edges);
@@ -336,6 +367,7 @@ void Application::createEffectsHandler(Compositor *compositor, WorkspaceScene *s
     new EffectsHandler(compositor, scene);
 }
 
+#if KWIN_BUILD_X11
 void Application::registerEventFilter(X11EventFilter *filter)
 {
     if (filter->isGenericEvent()) {
@@ -356,14 +388,15 @@ static X11EventFilterContainer *takeEventFilter(X11EventFilter *eventFilter,
     }
     return nullptr;
 }
+#endif
 
-void Application::setXScale(qreal scale)
+void Application::setXwaylandScale(qreal scale)
 {
     Q_ASSERT(scale != 0);
-    if (scale != m_xScale) {
-        m_xScale = scale;
+    if (scale != m_xwaylandScale) {
+        m_xwaylandScale = scale;
         applyXwaylandScale();
-        Q_EMIT xScaleChanged();
+        Q_EMIT xwaylandScaleChanged();
     }
 }
 
@@ -375,18 +408,21 @@ void Application::applyXwaylandScale()
 
     KConfigGroup xwaylandGroup = kwinApp()->config()->group(QStringLiteral("Xwayland"));
     if (xwaylandClientsScale) {
-        xwaylandGroup.writeEntry("Scale", m_xScale, KConfig::Notify);
+        xwaylandGroup.writeEntry("Scale", m_xwaylandScale, KConfig::Notify);
     } else {
         xwaylandGroup.deleteEntry("Scale", KConfig::Notify);
     }
     xwaylandGroup.sync();
 
+#if KWIN_BUILD_X11
     if (x11Connection()) {
         // rerun the fonts kcm init that does the appropriate xrdb call with the new settings
         QProcess::startDetached("kcminit", {"kcm_fonts_init", "kcm_style_init"});
     }
+#endif
 }
 
+#if KWIN_BUILD_X11
 void Application::unregisterEventFilter(X11EventFilter *filter)
 {
     X11EventFilterContainer *container = nullptr;
@@ -506,7 +542,19 @@ static quint32 monotonicTime()
 
 void Application::updateXTime()
 {
-    setX11Time(QX11Info::getTimestamp(), TimestampUpdate::Always);
+    switch (operationMode()) {
+    case Application::OperationModeX11:
+        setX11Time(QX11Info::getTimestamp(), TimestampUpdate::Always);
+        break;
+
+    case Application::OperationModeWayland:
+        setX11Time(monotonicTime(), TimestampUpdate::Always);
+        break;
+
+    default:
+        // Do not update the current X11 time stamp if it's the Wayland only session.
+        break;
+    }
 }
 
 void Application::updateX11Time(xcb_generic_event_t *event)
@@ -591,6 +639,8 @@ bool XcbEventFilter::nativeEventFilter(const QByteArray &eventType, void *messag
     return false;
 }
 
+#endif
+
 QProcessEnvironment Application::processStartupEnvironment() const
 {
     return m_processEnvironment;
@@ -616,6 +666,11 @@ void Application::setSession(std::unique_ptr<Session> &&session)
 PluginManager *Application::pluginManager() const
 {
     return m_pluginManager.get();
+}
+
+InputMethod *Application::inputMethod() const
+{
+    return m_inputMethod.get();
 }
 
 ColorManager *Application::colorManager() const
@@ -701,7 +756,8 @@ PlatformCursorImage Application::cursorImage() const
     switch (effects->compositingType()) {
     case OpenGLCompositing:
         return grabCursorOpenGL();
-    case NoCompositing:
+    case QPainterCompositing:
+        return grabCursorSoftware();
     default:
         Q_UNREACHABLE();
     }

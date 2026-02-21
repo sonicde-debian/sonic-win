@@ -36,7 +36,7 @@ KWIN_EXPORT Q_NAMESPACE
          */
         OpenGLCompositing = 1,
         /* XRenderCompositing = 1<<1, */
-        /* QPainterCompositing = 1<<2, (removed - not supported on X11) */
+        QPainterCompositing = 1 << 2,
     };
 
 enum OpenGLPlatformInterface {

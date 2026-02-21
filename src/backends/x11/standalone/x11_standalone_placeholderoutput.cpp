@@ -23,14 +23,14 @@ X11PlaceholderOutput::X11PlaceholderOutput(X11StandaloneBackend *backend, QObjec
 
     auto mode = std::make_shared<OutputMode>(pixelSize, 60000);
 
-    Information info{};
-    info.name = QStringLiteral("Placeholder-0");
-    setInformation(info);
+    setInformation(Information{
+        .name = QStringLiteral("Placeholder-0"),
+    });
 
-    State state{};
-    state.modes = {mode};
-    state.currentMode = mode;
-    setState(state);
+    setState(State{
+        .modes = {mode},
+        .currentMode = mode,
+    });
 }
 
 RenderLoop *X11PlaceholderOutput::renderLoop() const

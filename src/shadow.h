@@ -26,6 +26,7 @@ class DecorationShadow;
 namespace KWin
 {
 
+class ShadowInterface;
 class Window;
 
 /**
@@ -128,6 +129,7 @@ private:
     static QList<uint32_t> readX11ShadowProperty(xcb_window_t id);
     bool init(const QList<uint32_t> &data);
     bool init(KDecoration3::Decoration *decoration);
+    bool init(const QPointer<ShadowInterface> &shadow);
     bool init(const QWindow *window);
     Window *m_window;
     // shadow elements
