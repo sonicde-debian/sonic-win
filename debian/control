@@ -99,6 +99,9 @@ Build-Depends: debhelper-compat (= 13),
                wayland-protocols (>= 1.38~),
                xwayland (>= 2:23.1.0~),
 Standards-Version: 4.7.2
+Vcs-Git: https://github.com/sonicde-debian/sonic-win.git
+Vcs-Browser: https://github.com/sonicde-debian/sonic-win
+Homepage: https://github.com/Sonic-DE/sonic-win
 
 Package: sonic-win
 Architecture: any
