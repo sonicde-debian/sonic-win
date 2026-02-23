@@ -106,7 +106,6 @@ Homepage: https://github.com/Sonic-DE/sonic-win
 Package: sonic-win
 Architecture: any
 Depends: hwdata,
-#         kwin-common,
          sonic-win-data (= ${source:Version}),
          xauth,
          xinit,
