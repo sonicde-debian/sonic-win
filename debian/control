@@ -49,7 +49,7 @@ Build-Depends: debhelper-compat (= 13),
                libkglobalacceld-dev (>= 6.4.91~),
                libkirigami-dev (>= 6.18.0~),
                liblcms2-dev,
-               libplasma-dev (>= 6.5.4~),
+               libsonicinterface-dev (>= 6.5.4~),
                libplasmaactivities-dev (>= 6.5.4~),
                libqaccessibilityclient-qt6-dev,
                libsystemd-dev [linux-any],
@@ -141,7 +141,7 @@ Package: sonic-win-data
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends},
-Recommends: plasma-desktoptheme,
+Recommends: sonic-desktoptheme,
             qml6-module-org-kde-kirigami,
             qml6-module-org-kde-kitemmodels,
             qml6-module-org-kde-kquickcontrolsaddons,
