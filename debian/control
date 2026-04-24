@@ -95,7 +95,6 @@ Build-Depends: debhelper-compat (= 13),
                qt6-svg-dev (>= 6.9.0~),
                qt6-tools-dev (>= 6.9.0~),
                qt6-wayland-dev (>= 6.9.0~),
-               qt6-wayland-dev-tools (>= 6.8.0~),
                wayland-protocols (>= 1.38~),
                xwayland (>= 2:23.1.0~),
 Standards-Version: 4.7.2
