@@ -821,13 +821,32 @@ bool X11Window::manage(xcb_window_t w, bool isMapped)
         checkOffscreenPosition(&geom, area);
     } else {
         Output *output = nullptr;
-        if (asn_data.xinerama() != -1) {
-            output = workspace()->xineramaIndexToOutput(asn_data.xinerama());
+        // Use the application requested position if the application explicitly specified it
+        // (via WM_NORMAL_HINTS with USPosition or PPosition flags)
+        if (m_geometryHints.hasPosition()) {
+            output = workspace()->outputAt(geom.center());
         }
+
         if (!output) {
+            // If there was no requested position output, use the active output
             output = workspace()->activeOutput();
+
+            // Fallbacks if there is no active output
+            if (!output) {
+                if (asn_data.xinerama() != -1) {
+                    // Try xinerama if available
+                    output = workspace()->xineramaIndexToOutput(asn_data.xinerama());
+                } else {
+                    // Fall back to mouse position
+                    output = workspace()->outputAt(Cursors::self()->mouse()->pos());
+                }
+            }
         }
+
         output = rules()->checkOutput(output, !isMapped);
+
+        setOutput(output);
+        setMoveResizeOutput(output);
         area = workspace()->clientArea(PlacementArea, this, output->geometry().center());
     }
 
@@ -844,21 +863,8 @@ bool X11Window::manage(xcb_window_t w, bool isMapped)
     } else if (isTransient() && !hasNETSupport()) {
         usePosition = true;
     } else if (isDialog() && hasNETSupport()) {
-        // If the dialog is actually non-NETWM transient window, don't try to apply placement to it,
-        // it breaks with too many things (xmms, display)
-        if (mainWindows().count() >= 1) {
-#if 1
-            // #78082 - Ok, it seems there are after all some cases when an application has a good
-            // reason to specify a position for its dialog. Too bad other WMs have never bothered
-            // with placement for dialogs, so apps always specify positions for their dialogs,
-            // including such silly positions like always centered on the screen or under mouse.
-            // Using ignoring requested position in window-specific settings helps, and now
-            // there's also _NET_WM_FULL_PLACEMENT.
-            usePosition = true;
-#else
-            ; // Force using placement policy
-#endif
-        } else {
+        // For transient dialogs without a parent or non-transient dialogs, use the application's requested position
+        if (!isTransient() || !transientFor()) {
             usePosition = true;
         }
     } else if (isSplash()) {
@@ -867,7 +873,7 @@ bool X11Window::manage(xcb_window_t w, bool isMapped)
         usePosition = true;
     }
     if (!rules()->checkIgnoreGeometry(!usePosition, true)) {
-        if (m_geometryHints.hasPosition()) {
+        if (m_geometryHints.hasPosition() && usePosition) {
             placementDone = true;
             // Disobey xinerama placement option for now (#70943)
             area = workspace()->clientArea(PlacementArea, this, geom.center());
@@ -909,8 +915,10 @@ bool X11Window::manage(xcb_window_t w, bool isMapped)
     }
     if (!placementDone) {
         // Placement needs to be after setting size
+        qCDebug(KWIN_CORE) << "  Before placement - window pos:" << pos() << "frameGeometry:" << frameGeometry();
         workspace()->placement()->place(this, area);
         // The client may have been moved to another screen, update placement area.
+        qCDebug(KWIN_CORE) << "  After placement - window pos:" << pos() << "frameGeometry:" << frameGeometry() << "output:" << output();
         area = workspace()->clientArea(PlacementArea, this, moveResizeOutput());
         dontKeepInArea = true;
         placementDone = true;
@@ -4770,8 +4778,8 @@ bool X11Window::doStartInteractiveMoveResize()
         bool has_grab = false;
         kwinApp()->updateXTime();
         const xcb_grab_pointer_cookie_t cookie = xcb_grab_pointer(kwinApp()->x11Connection(), false, frameId(),
-                                                                            XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW,
-                                                                            XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, Cursors::self()->mouse()->x11Cursor(cursor()), xTime());
+                                                                  XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW,
+                                                                  XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, Cursors::self()->mouse()->x11Cursor(cursor()), xTime());
         UniqueCPtr<xcb_grab_pointer_reply_t> pointerGrab(xcb_grab_pointer_reply(kwinApp()->x11Connection(), cookie, nullptr));
         if (pointerGrab && pointerGrab->status == XCB_GRAB_STATUS_SUCCESS) {
             has_grab = true;
