@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VERSION "6.6.4") # Handled by release scripts
+set(PROJECT_VERSION "6.7.2") # Handled by release scripts
 project(KWin VERSION ${PROJECT_VERSION})
 
 set(CMAKE_C_STANDARD 99)
@@ -8,9 +8,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(PROJECT_DEP_VERSION "6.6.4")
+set(PROJECT_DEP_VERSION "6.7.0")
 set(QT_MIN_VERSION "6.10.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(KF6_MIN_VERSION "6.26.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
@@ -46,7 +46,6 @@ include(ECMQtDeclareLoggingCategory)
 include(ECMSetupQtPluginMacroNames)
 include(ECMSetupVersion)
 include(ECMQmlModule)
-include(ECMGenerateQmlTypes)
 include(ECMDeprecationSettings)
 
 option(KWIN_BUILD_DECORATIONS "Enable building of KWin decorations." ON)
@@ -55,6 +54,7 @@ option(KWIN_BUILD_NOTIFICATIONS "Enable building of KWin with knotifications sup
 option(KWIN_BUILD_SCREENLOCKER "Enable building of KWin lockscreen functionality" ON)
 option(KWIN_BUILD_TABBOX "Enable building of KWin Tabbox functionality" ON)
 option(KWIN_BUILD_RUNNERS "Enable building of KWin with krunner support" ON)
+option(KWIN_BUILD_NIGHTLIGHT "Enable building of KWin with nightlight support" ON)
 
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Concurrent
@@ -69,7 +69,7 @@ find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
 )
 
 if (Qt6Gui_VERSION VERSION_GREATER_EQUAL "6.10.0")
-    find_package(Qt6GuiPrivate ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
+    find_package(Qt6GuiPrivate ${QT_MIN_VERSION} REQUIRED NO_MODULE)
 endif()
 
 find_package(Qt6Test ${QT_MIN_VERSION} CONFIG QUIET)
@@ -118,11 +118,13 @@ if(KWIN_BUILD_TABBOX AND KWIN_BUILD_KCMS)
     )
 endif()
 
-find_package(KNightTime ${PROJECT_DEP_VERSION} CONFIG)
-set_package_properties(KNightTime PROPERTIES
-    PURPOSE "Needed for Night Light"
-    TYPE REQUIRED
-)
+if(KWIN_BUILD_NIGHTLIGHT)
+    find_package(KNightTime ${PROJECT_DEP_VERSION} CONFIG)
+    set_package_properties(KNightTime PROPERTIES
+        PURPOSE "Needed for Night Light"
+        TYPE REQUIRED
+    )
+endif()
 
 find_package(Threads)
 set_package_properties(Threads PROPERTIES
@@ -466,7 +468,7 @@ list(FILTER ALL_CLANG_FORMAT_SOURCE_FILES EXCLUDE REGEX ".*\\.ccls-cache/.*")
 kde_clang_format(${ALL_CLANG_FORMAT_SOURCE_FILES})
 kde_configure_git_pre_commit_hook(CHECKS CLANG_FORMAT)
 
-feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
+feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 set(CMAKECONFIG_INSTALL_DIR "${KDE_INSTALL_CMAKEPACKAGEDIR}/KWinX11DBusInterface")
 configure_package_config_file(KWinX11DBusInterfaceConfig.cmake.in
@@ -480,3 +482,5 @@ ecm_install_configured_files(INPUT plasma-kwin_x11.service.in @ONLY
             DESTINATION ${KDE_INSTALL_SYSTEMDUSERUNITDIR})
 
 ki18n_install(po)
+
+
